@@ -1,0 +1,40 @@
+version: '3.7'
+networks:
+  app-tier:
+    driver: bridge
+services:
+  ap1web1:
+    image: efdaimon/testcase:baseimage
+    build: .
+    ports:
+      - '81:80'
+    networks:
+      - app-tier
+  appweb2:
+    image: efdaimon/testcase:baseimage
+    ports:
+      - '82:80'
+    networks:
+      - app-tier
+  loadbalancer:
+    image: nginx:latest
+    ports:
+      - '80:80'
+    networks:
+      - app-tier
+  mysql:
+    image: mysql:latest
+    restart: on-failure
+    networks:
+      - app-tier
+    environment:
+       MYSQL_ROOT_PASSWORD: root
+       MYSQL_DATABASE: db
+  elastic:
+    image: bitnami/elasticsearch:latest
+    ports:
+      - '6200:6200'
+    networks:
+      - app-tier
+    volumes:
+      - /path/to/elasticsearch-data-persistence:/bitnami/elasticsearch/data
