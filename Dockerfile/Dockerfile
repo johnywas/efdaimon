@@ -1,11 +1,13 @@
 # base host environment with webserver
+
 FROM centos:latest
-LABEL maintainer="yiannis"
-RUN yum install -y epel-release
-RUN yum install -y python-pip
-RUN pip install --upgrade pip
-RUN pip install docker-compose
-RUN yum install -y httpd
+
+LABEL maintainer="efdaimon"
+#Optimized service installation
+RUN yum install -y epel-release && \
+    yum install -y python-pip && \
+    pip install --upgrade pip && \
+    yum install -y httpd
 RUN yum update -y
 RUN echo "You visited the container website!" >> /var/www/html/index.html
 
