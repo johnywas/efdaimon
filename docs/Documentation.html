@@ -1,0 +1,54 @@
+<h5 style="text-align: center;"><span style="text-decoration: underline; font-size: 12pt; font-family: verdana, geneva;">Intro</span></h5>
+<p style="text-align: justify;"><span style="font-size: 11pt; font-family: verdana, geneva;">For the needs of this project have been set up two Apache CentosOS web servers and a proxy server (Nginx) for load balancing on the application layer. A Dockerfile pushed in Github has been used in order to build a custom image hosted in Docker hub. This image will be used into a docker-compose file including other services in order to build and deploy our application in a Swarm cluster.</span></p>
+<p style="text-align: justify;"><span style="font-size: 11pt; font-family: verdana, geneva;">The above architecture along with the improvement ideas will ensure high availability to the website, performance stability and excited users.&nbsp; (:</span></p>
+<h5 id="h_71450504141550279706957" style="text-align: center;"><span style="text-decoration: underline; font-size: 12pt; font-family: verdana, geneva;">Implementation Overview</span></h5>
+<p><img src="diagram.PNG" align="middle" /></p>
+<h5 id="h_71450504141550279706957" style="text-align: center;"><span style="text-decoration: underline; font-size: 12pt; font-family: verdana, geneva;">Implementation Steps</span></h5>
+<p><span style="font-size: 11pt; font-family: verdana, geneva;">For the environment set up have been used 2 cloud VMs CentOS7 (Core) with Docker installed (Docker version 18.06.0-ce). Having a 2 nodes cluster, 1 swarm manager and 1 worker.</span></p>
+<ol>
+<li><span style="font-family: verdana, geneva;">Using a Dockerfile created an image to host the application layer of the website and pushed on Docker Hub.</span><br /><br /></li>
+<li><span style="font-family: verdana, geneva;">Created a docker-compose file to build all the services for the multi-container Docker application:</span>
+<ol style="list-style-type: lower-alpha;">
+<li><span style="font-family: verdana, geneva;">2 Web servers (Apache)</span></li>
+<li><span style="font-family: verdana, geneva;">Load balancer&nbsp;(Nginx)</span></li>
+<li><span style="font-family: verdana, geneva;">Database (</span>mysql<span style="font-family: verdana, geneva;">)</span></li>
+<li><span style="font-family: verdana, geneva;">Monitoring (Elasticsearch)</span><br /><br /></li>
+</ol>
+</li>
+<li><span style="font-family: verdana, geneva;">Swarm initialization. Turn the host to Manager with static IP:</span><br /><code>docker swarm init --advertise-</code>addr<code> &lt;static_IP&gt;<br /><br /></code></li>
+<li style="text-align: left;"><span style="font-family: verdana, geneva;">Add Worker node in the cluster. Connect to the second VM and execute:</span> <br /><code>docker swarm join --token SWMTKN-1-302ydp0vgtz1w2zio1qg7l9b9n6orl6kxlrxjae61foh8qisvu-cur9mmjmhx2o2v77h80fk14k1 &lt;IP&gt;<br /><br /></code></li>
+<li style="text-align: left;"><span style="font-family: verdana, geneva;">Deploy the stack of services to Swarm cluster. Execute from Management node:</span><br /><code>docker stack deploy --compose-file docker-compose.yml &lt;name&gt;<br /><br /></code></li>
+<li style="text-align: left;"><span style="font-family: verdana, geneva;">Inspect containers and services across the Swarm cluster.</span></li>
+</ol>
+<h5 id="h_71450504141550279706957" style="text-align: center;"><span style="text-decoration: underline; font-size: 12pt; font-family: verdana, geneva;">Automated Build and Deployment</span></h5>
+<p style="text-align: justify;"><span style="font-family: verdana, geneva;">A Jenkins job will automate the deployment of the application. The minimum requirements to achieve it&nbsp;consist&nbsp;of a job that downloads the docker-compose file(s) from an artifact repository and&nbsp;transfer&nbsp;it over ssh to the manager(s)</span><span style="font-family: verdana, geneva;">. The execution of the below command in each management node will&nbsp;deploy only the updated Docker services including configuration across the worker nodes of the Swarm cluster.</span></p>
+<p style="text-align: center;"><code>docker stack deploy --compose-file docker-compose.yml webstack</code></p>
+<p style="text-align: justify;"><span style="font-family: verdana, geneva;">Since the application code is directly embedded in the base image, the Jenkins job could also easily update a concrete artifact inside the web server layer. The process can be automated even more according to the needs. For example,&nbsp;trigger&nbsp;a build process in this repository whenever a developer commits the code.</span></p>
+<h5 id="h_71450504141550279706957" style="text-align: center;"><span style="text-decoration: underline; font-size: 12pt; font-family: verdana, geneva;">High Availability</span></h5>
+<div dir="auto" style="text-align: justify;"><span style="font-family: verdana, geneva;">High Availability for the whole service can be assured with the below solutions:</span></div>
+<ul>
+<li dir="auto" style="text-align: justify;"><span style="font-family: verdana, geneva;">Implementation of a self-healing environment with automated processes to replace/reboot broken containers or failed managers based on system&nbsp;health checks at any time. Force rebalance&nbsp;required.</span></li>
+<li dir="auto" style="text-align: justify;"><span style="font-family: verdana, geneva;">Automated scaling of the resources in response to real-time data metrics to ensure stability and performance even with massive network traffic.</span></li>
+<li dir="auto" style="text-align: justify;"><span style="font-family: verdana, geneva;">Distribute Management nodes to multiple datacenters or racks.</span></li>
+<li dir="auto" style="text-align: justify;"><span style="font-family: verdana, geneva;">Run Manager-only nodes.</span></li>
+<li dir="auto" style="text-align: justify;"><span style="font-family: verdana, geneva;">Spread the deployment of&nbsp;applications over multiple servers.</span></li>
+<li dir="auto" style="text-align: justify;"><span style="font-family: verdana, geneva;">Backup and recovery plan for the Swarm cluster.</span></li>
+</ul>
+<h5 id="h_71450504141550279706957" style="text-align: center;"><span style="text-decoration: underline; font-size: 12pt; font-family: verdana, geneva;">Improvement&nbsp;steps</span></h5>
+<p style="text-align: justify;"><span style="font-size: 11pt; font-family: verdana, geneva;">Below you may find some improvement&nbsp;steps for the provided solution and a few matters to be considered.</span></p>
+<p style="text-align: justify;"><span style="font-size: 11pt; font-family: verdana, geneva;">Short term:</span></p>
+<ul style="text-align: justify;">
+<li><span style="font-family: verdana, geneva;">Point domain name to Docker Swarm manager.</span></li>
+<li><span style="font-family: verdana, geneva;">Scale up and incorporate multiple managers and workers in the cluster.</span></li>
+<li><span style="font-family: verdana, geneva;">Implement ELK Stack for centralized logging, monitoring&nbsp;</span>and<span style="font-family: verdana, geneva;"> easier troubleshooting.</span></li>
+<li><span style="font-family: verdana, geneva;">Consider application dependencies.</span></li>
+<li><span style="font-family: verdana, geneva;">Networking limitations and timeouts.</span></li>
+<li><span style="font-family: verdana, geneva;">Improve configuration using variables where possible.</span></li>
+</ul>
+<p style="text-align: justify;"><span style="font-family: verdana, geneva;">Long term:</span></p>
+<ul>
+<li style="text-align: justify;"><span style="font-family: verdana, geneva;">Storage and sizing requirements.</span></li>
+<li style="text-align: justify;"><span style="font-family: verdana, geneva;">Automate the Swarm cluster creation process through Jenkins (and maybe docker-machine).</span></li>
+<li style="text-align: justify;"><span style="font-family: verdana, geneva;">Automate housekeeping processes.</span></li>
+</ul>
+<p>&nbsp;</p>
